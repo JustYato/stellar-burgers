@@ -44,7 +44,6 @@ export const feedSlice = createSlice({
         }
       );
   },
-
   selectors: {
     selectOrders(state: FeedState) {
       return state.orders;

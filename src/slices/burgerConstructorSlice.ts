@@ -53,7 +53,6 @@ export const burgerConstructorSlice = createSlice({
       Object.assign(state, { bun: null, ingredients: [] });
     }
   },
-
   selectors: {
     selectState(state: BurgerConstructorState) {
       return state;
