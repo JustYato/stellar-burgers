@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { v4 as uuid } from 'uuid';
 import { TConstructorIngredient, TIngredient } from '../utils/types';
 
@@ -25,7 +25,7 @@ export const burgerConstructorSlice = createSlice({
         if (payload.type === 'bun') {
           state.bun = payload;
         } else {
-          state.ingredients = [...state.ingredients, payload];
+          state.ingredients.push(payload);
         }
       }
     },
@@ -36,31 +36,44 @@ export const burgerConstructorSlice = createSlice({
     moveUpIngredient(state, action: PayloadAction<number>) {
       const index = action.payload;
       if (index > 0) {
-        const temp = state.ingredients[index];
-        state.ingredients[index] = state.ingredients[index - 1];
-        state.ingredients[index - 1] = temp;
+        [state.ingredients[index], state.ingredients[index - 1]] = [
+          state.ingredients[index - 1],
+          state.ingredients[index]
+        ];
       }
     },
     moveDownIngredient(state, action: PayloadAction<number>) {
       const index = action.payload;
       if (index < state.ingredients.length - 1) {
-        const temp = state.ingredients[index];
-        state.ingredients[index] = state.ingredients[index + 1];
-        state.ingredients[index + 1] = temp;
+        [state.ingredients[index], state.ingredients[index + 1]] = [
+          state.ingredients[index + 1],
+          state.ingredients[index]
+        ];
       }
     },
     resetBurgerConstructor(state) {
-      Object.assign(state, { bun: null, ingredients: [] });
-    }
-  },
-  selectors: {
-    selectState(state: BurgerConstructorState) {
-      return state;
+      state.bun = null;
+      state.ingredients = [];
     }
   }
 });
 
-export const { selectState } = burgerConstructorSlice.selectors;
+export const selectBurgerState = (state: {
+  burgerConstructor: BurgerConstructorState;
+}) => state.burgerConstructor;
+
+export const selectBun = createSelector(
+  selectBurgerState,
+  (state) => state.bun
+);
+export const selectIngredients = createSelector(
+  selectBurgerState,
+  (state) => state.ingredients
+);
+export const selectAllIngredients = createSelector(
+  [selectBun, selectIngredients],
+  (bun, ingredients) => (bun ? [bun, ...ingredients] : ingredients)
+);
 export const {
   addIngredient,
   removeIngredient,
@@ -68,4 +81,4 @@ export const {
   moveDownIngredient,
   resetBurgerConstructor
 } = burgerConstructorSlice.actions;
-export const { reducer: burgerConstructorReducer } = burgerConstructorSlice;
+export const burgerConstructorReducer = burgerConstructorSlice.reducer;

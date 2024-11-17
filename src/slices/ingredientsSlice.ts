@@ -1,4 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { getIngredientsApi } from '../utils/burger-api';
 import { TIngredient, RequestStatus } from '../utils/types';
 
@@ -22,12 +27,12 @@ export const getIngredients = createAsyncThunk<TIngredient[]>(
 
 export const ingredientsSlice = createSlice({
   name: 'ingredients',
-  initialState: initialState,
+  initialState,
   reducers: {},
-  extraReducers(builder) {
+  extraReducers: (builder) => {
     builder
       .addCase(getIngredients.pending, (state) => {
-        Object.assign(state, { requestStatus: RequestStatus.Loading });
+        state.requestStatus = RequestStatus.Loading;
       })
       .addCase(getIngredients.rejected, (state) => {
         state.requestStatus = RequestStatus.Failed;
@@ -35,22 +40,22 @@ export const ingredientsSlice = createSlice({
       .addCase(
         getIngredients.fulfilled,
         (state, action: PayloadAction<TIngredient[]>) => {
-          const ingredients = action.payload;
           state.requestStatus = RequestStatus.Success;
-          state.ingredients = ingredients;
+          state.ingredients = action.payload;
         }
       );
-  },
-  selectors: {
-    selectIngredients(state: IngredientState) {
-      return state.ingredients;
-    },
-    selectIngredientsStatus(state: IngredientState) {
-      return state.requestStatus;
-    }
   }
 });
 
-export const { selectIngredients, selectIngredientsStatus } =
-  ingredientsSlice.selectors;
-export const { reducer: ingredientsReducer } = ingredientsSlice;
+const selectIngredientState = (state: { ingredients: IngredientState }) =>
+  state.ingredients;
+
+export const selectIngredients = createSelector(
+  selectIngredientState,
+  (state) => state.ingredients
+);
+export const selectIngredientsStatus = createSelector(
+  selectIngredientState,
+  (state) => state.requestStatus
+);
+export const ingredientsReducer = ingredientsSlice.reducer;

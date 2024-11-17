@@ -23,37 +23,45 @@ export const initialState: TUserState = {
   requestStatus: RequestStatus.Idle
 };
 
+const setAuthTokens = (accessToken: string, refreshToken: string) => {
+  setCookie('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+};
+
+const clearAuthTokens = () => {
+  deleteCookie('accessToken');
+  localStorage.clear();
+};
+
 export const loginUser = createAsyncThunk(
   'user/loginUser',
-  async ({ email, password }: TLoginData) => {
-    const response = await loginUserApi({ email, password });
+  async (data: TLoginData) => {
+    const response = await loginUserApi(data);
     if (response?.success) {
-      setCookie('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
+      setAuthTokens(response.accessToken, response.refreshToken);
       return response.user;
     }
-    return response.user;
+    throw new Error('Login failed');
   }
 );
 
 export const registerUser = createAsyncThunk(
   'user/registerUser',
-  async ({ email, name, password }: TRegisterData) => {
-    const response = await registerUserApi({ email, name, password });
+  async (data: TRegisterData) => {
+    const response = await registerUserApi(data);
     if (response?.success) {
-      setCookie('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
+      setAuthTokens(response.accessToken, response.refreshToken);
       return response.user;
     }
-    return response.user;
+    throw new Error('Registration failed');
   }
 );
 
 export const checkUserAuth = createAsyncThunk(
-  'user/checkUser',
-  async (_, thunkAPI) => {
+  'user/checkUserAuth',
+  async (_, { rejectWithValue }) => {
     if (!document.cookie.includes('accessToken')) {
-      return thunkAPI.rejectWithValue('User is not authorized');
+      return rejectWithValue('User is not authorized');
     }
     const response = await getUserApi();
     return response.user;
@@ -62,17 +70,32 @@ export const checkUserAuth = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
   await logoutApi();
-  localStorage.clear();
-  deleteCookie('accessToken');
+  clearAuthTokens();
 });
 
 export const updateUser = createAsyncThunk(
   'user/updateUser',
-  async ({ email, name, password }: TRegisterData) => {
-    const response = await updateUserApi({ email, name, password });
+  async (data: TRegisterData) => {
+    const response = await updateUserApi(data);
     return response.user;
   }
 );
+
+const handlePending = (state: TUserState) => {
+  state.requestStatus = RequestStatus.Loading;
+  state.isAuthVerified = false;
+};
+
+const handleRejected = (state: TUserState) => {
+  state.requestStatus = RequestStatus.Failed;
+  state.isAuthVerified = true;
+};
+
+const handleFulfilled = (state: TUserState, user: TUser | null) => {
+  state.user = user;
+  state.requestStatus = RequestStatus.Success;
+  state.isAuthVerified = true;
+};
 
 export const userSlice = createSlice({
   name: 'user',
@@ -80,66 +103,28 @@ export const userSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(registerUser.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-        state.isAuthVerified = false;
-      })
-      .addCase(registerUser.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-        state.isAuthVerified = true;
-      })
-      .addCase(registerUser.fulfilled, (state, { payload }) => {
-        state.user = payload;
-        state.requestStatus = RequestStatus.Success;
-        state.isAuthVerified = true;
-      })
-      .addCase(loginUser.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-        state.isAuthVerified = false;
-      })
-      .addCase(loginUser.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-        state.isAuthVerified = true;
-      })
-      .addCase(loginUser.fulfilled, (state, { payload }) => {
-        state.user = payload;
-        state.requestStatus = RequestStatus.Success;
-        state.isAuthVerified = true;
-      })
-      .addCase(updateUser.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-        state.isAuthVerified = false;
-      })
-      .addCase(updateUser.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-        state.isAuthVerified = true;
-      })
-      .addCase(updateUser.fulfilled, (state, { payload }) => {
-        state.user = payload;
-        state.requestStatus = RequestStatus.Success;
-        state.isAuthVerified = true;
-      })
-      .addCase(checkUserAuth.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-        state.isAuthVerified = false;
-      })
-      .addCase(checkUserAuth.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-        state.isAuthVerified = true;
-      })
-      .addCase(checkUserAuth.fulfilled, (state, { payload }) => {
-        state.user = payload;
-        state.requestStatus = RequestStatus.Success;
-        state.isAuthVerified = true;
-      })
-      .addCase(logoutUser.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-        state.isAuthVerified = false;
-      })
-      .addCase(logoutUser.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-        state.isAuthVerified = true;
-      })
+      .addCase(registerUser.pending, handlePending)
+      .addCase(registerUser.rejected, handleRejected)
+      .addCase(registerUser.fulfilled, (state, { payload }) =>
+        handleFulfilled(state, payload)
+      )
+      .addCase(loginUser.pending, handlePending)
+      .addCase(loginUser.rejected, handleRejected)
+      .addCase(loginUser.fulfilled, (state, { payload }) =>
+        handleFulfilled(state, payload)
+      )
+      .addCase(updateUser.pending, handlePending)
+      .addCase(updateUser.rejected, handleRejected)
+      .addCase(updateUser.fulfilled, (state, { payload }) =>
+        handleFulfilled(state, payload)
+      )
+      .addCase(checkUserAuth.pending, handlePending)
+      .addCase(checkUserAuth.rejected, handleRejected)
+      .addCase(checkUserAuth.fulfilled, (state, { payload }) =>
+        handleFulfilled(state, payload)
+      )
+      .addCase(logoutUser.pending, handlePending)
+      .addCase(logoutUser.rejected, handleRejected)
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.requestStatus = RequestStatus.Success;

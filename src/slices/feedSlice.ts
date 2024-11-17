@@ -1,4 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { RequestStatus, TOrder } from '@utils-types';
 import { TFeedsResponse, getFeedsApi } from '../utils/burger-api';
 
@@ -16,25 +21,28 @@ const initialState: FeedState = {
   requestStatus: RequestStatus.Idle
 };
 
-export const getFeeds = createAsyncThunk('feeds/getAll', async () => {
-  const response = await getFeedsApi();
-  return response;
-});
+export const getFeed = createAsyncThunk<TFeedsResponse>(
+  'feeds/getAll',
+  async () => {
+    const response = await getFeedsApi();
+    return response;
+  }
+);
 
 export const feedSlice = createSlice({
   name: 'feed',
-  initialState: initialState,
+  initialState,
   reducers: {},
-  extraReducers(builder) {
+  extraReducers: (builder) => {
     builder
-      .addCase(getFeeds.pending, (state) => {
-        Object.assign(state, { requestStatus: RequestStatus.Loading });
+      .addCase(getFeed.pending, (state) => {
+        state.requestStatus = RequestStatus.Loading;
       })
-      .addCase(getFeeds.rejected, (state) => {
+      .addCase(getFeed.rejected, (state) => {
         state.requestStatus = RequestStatus.Failed;
       })
       .addCase(
-        getFeeds.fulfilled,
+        getFeed.fulfilled,
         (state, action: PayloadAction<TFeedsResponse>) => {
           const payload = action.payload;
           state.requestStatus = RequestStatus.Success;
@@ -43,20 +51,25 @@ export const feedSlice = createSlice({
           state.totalToday = payload.totalToday;
         }
       );
-  },
-  selectors: {
-    selectOrders(state: FeedState) {
-      return state.orders;
-    },
-    selectFeed(state: FeedState) {
-      return state;
-    },
-    getStatusRequest(state: FeedState) {
-      return state.requestStatus;
-    }
   }
 });
 
-export const { selectOrders, selectFeed, getStatusRequest } =
-  feedSlice.selectors;
-export const { reducer: feedReducer } = feedSlice;
+const selectFeedState = (state: { feed: FeedState }) => state.feed;
+
+export const selectOrders = createSelector(
+  selectFeedState,
+  (state) => state.orders
+);
+export const selectTotal = createSelector(
+  selectFeedState,
+  (state) => state.total
+);
+export const selectTotalToday = createSelector(
+  selectFeedState,
+  (state) => state.totalToday
+);
+export const selectFeedStatus = createSelector(
+  selectFeedState,
+  (state) => state.requestStatus
+);
+export const feedReducer = feedSlice.reducer;

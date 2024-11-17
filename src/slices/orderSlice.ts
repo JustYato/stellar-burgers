@@ -1,4 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import { RequestStatus, TOrder } from '@utils-types';
 import {
   TNewOrderResponse,
@@ -39,7 +44,7 @@ export const orderSlice = createSlice({
       state.order = null;
     }
   },
-  extraReducers(builder) {
+  extraReducers: (builder) => {
     builder
       .addCase(createOrder.pending, (state) => {
         state.requestStatus = RequestStatus.Loading;
@@ -67,17 +72,18 @@ export const orderSlice = createSlice({
           state.order = action.payload.orders[0];
         }
       );
-  },
-  selectors: {
-    selectOrderStatus(state: OrderState) {
-      return state.requestStatus;
-    },
-    selectOrderInfo(state: OrderState) {
-      return state.order;
-    }
   }
 });
 
-export const { selectOrderStatus, selectOrderInfo } = orderSlice.selectors;
+const selectOrderState = (state: { order: OrderState }) => state.order;
+
+export const selectOrderStatus = createSelector(
+  selectOrderState,
+  (orderState) => orderState.requestStatus
+);
+export const selectOrderInfo = createSelector(
+  selectOrderState,
+  (orderState) => orderState.order
+);
 export const { resetOrderInfo } = orderSlice.actions;
-export const { reducer: orderReducer } = orderSlice;
+export const orderReducer = orderSlice.reducer;

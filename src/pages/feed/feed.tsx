@@ -5,21 +5,21 @@ import { RequestStatus } from '@utils-types';
 import { useDispatch, useSelector } from '../../services/store';
 import {
   selectOrders,
-  getFeeds,
-  getStatusRequest
+  getFeed,
+  selectFeedStatus
 } from '../../slices/feedSlice';
 
 export const Feed: FC = () => {
   const orders = useSelector(selectOrders);
-  const statusRequest = useSelector(getStatusRequest);
+  const statusRequest = useSelector(selectFeedStatus);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getFeeds());
+    dispatch(getFeed());
   }, [dispatch]);
 
   const handleGetFeeds = () => {
-    dispatch(getFeeds());
+    dispatch(getFeed());
   };
 
   if (!orders.length || statusRequest === RequestStatus.Loading) {

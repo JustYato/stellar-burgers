@@ -12,7 +12,29 @@ export const initialState: OrdersState = {
   requestStatus: RequestStatus.Idle
 };
 
-export const getOrders = createAsyncThunk('orders/getMy', getOrdersApi);
+export const getOrders = createAsyncThunk('orders/getMy', async () => {
+  const orders = await getOrdersApi();
+  if (!Array.isArray(orders)) {
+    throw new Error('Failed to fetch orders');
+  }
+  return orders;
+});
+
+const handlePending = (state: OrdersState) => {
+  state.requestStatus = RequestStatus.Loading;
+};
+
+const handleRejected = (state: OrdersState) => {
+  state.requestStatus = RequestStatus.Failed;
+};
+
+const handleFulfilled = (
+  state: OrdersState,
+  action: PayloadAction<TOrder[]>
+) => {
+  state.requestStatus = RequestStatus.Success;
+  state.orders = action.payload;
+};
 
 export const ordersSlice = createSlice({
   name: 'orders',
@@ -20,24 +42,12 @@ export const ordersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getOrders.pending, (state) => {
-        state.requestStatus = RequestStatus.Loading;
-      })
-      .addCase(getOrders.rejected, (state) => {
-        state.requestStatus = RequestStatus.Failed;
-      })
-      .addCase(
-        getOrders.fulfilled,
-        (state, action: PayloadAction<TOrder[]>) => {
-          state.requestStatus = RequestStatus.Success;
-          state.orders = action.payload;
-        }
-      );
-  },
-  selectors: {
-    selectOrders: (state: OrdersState) => state.orders
+      .addCase(getOrders.pending, handlePending)
+      .addCase(getOrders.rejected, handleRejected)
+      .addCase(getOrders.fulfilled, handleFulfilled);
   }
 });
 
-export const { selectOrders } = ordersSlice.selectors;
+export const selectOrders = (state: { orders: OrdersState }) =>
+  state.orders.orders;
 export const { reducer: ordersReducer } = ordersSlice;
