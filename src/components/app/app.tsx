@@ -73,6 +73,15 @@ const MainRoutes: React.FC = () => (
     <Route path='/' element={<ConstructorPage />} />
     <Route path='/feed' element={<Feed />} />
     <Route
+      path='/feed/:number'
+      element={
+        <div className={`${styles.wrap} pt-10`}>
+          <h3 className='text text_type_main-large'>Детали заказа</h3>
+          <OrderInfo />
+        </div>
+      }
+    />
+    <Route
       path='/login'
       element={
         <ProtectedRoute onlyUnAuth>
@@ -120,6 +129,17 @@ const MainRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+    <Route
+      path='/profile/orders/:number'
+      element={
+        <ProtectedRoute>
+          <div className={`${styles.wrap} pt-10`}>
+            <h3 className='text text_type_main-large'>Детали заказа</h3>
+            <OrderInfo />
+          </div>
+        </ProtectedRoute>
+      }
+    />
     <Route path='/ingredients/:id' element={<IngredientDetails />} />
     <Route path='*' element={<NotFound404 />} />
   </Routes>
@@ -129,7 +149,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const isBackground = location.state?.background;
+  const background = location.state?.background ?? location;
   const closeModal = () => navigate(-1);
 
   useEffect(() => {
@@ -138,10 +158,23 @@ const App: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.app}>
       <AppHeader />
-      <MainRoutes />
-      {isBackground && <ModalRoutes onClose={closeModal} />}
+      <Routes location={background}>
+        <Route path='/' element={<ConstructorPage />} />
+        <Route path='/feed' element={<Feed />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route path='/profile' element={<Profile />} />
+        <Route path='/profile/orders' element={<ProfileOrders />} />
+        <Route path='/ingredients/:id' element={<IngredientDetails />} />
+        <Route path='/feed/:number' element={<OrderInfo />} />
+        <Route path='/profile/orders/:number' element={<OrderInfo />} />
+        <Route path='*' element={<NotFound404 />} />
+      </Routes>
+      {location.state?.background && <ModalRoutes onClose={closeModal} />}
     </div>
   );
 };
