@@ -11,6 +11,7 @@ import {
 } from '@pages';
 import '../../index.css';
 import styles from './app.module.css';
+import stylesOrder from '../ui/order-info/order-info.module.css';
 import {
   Routes,
   Route,
@@ -31,126 +32,13 @@ const useOrderNumber = () => {
   return orderFromFeed || orderFromProfile;
 };
 
-const ModalRoutes: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const orderNumber = useOrderNumber();
-  return (
-    <Routes>
-      <Route
-        path='/ingredients/:id'
-        element={
-          <Modal title='Детали ингредиента' onClose={onClose}>
-            <IngredientDetails />
-          </Modal>
-        }
-      />
-      <Route
-        path='/feed/:number'
-        element={
-          <Modal title={`#${orderNumber?.padStart(6, '0')}`} onClose={onClose}>
-            <OrderInfo />
-          </Modal>
-        }
-      />
-      <Route
-        path='/profile/orders/:number'
-        element={
-          <ProtectedRoute>
-            <Modal
-              title={`#${orderNumber?.padStart(6, '0')}`}
-              onClose={onClose}
-            >
-              <OrderInfo />
-            </Modal>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
-  );
-};
-
-const MainRoutes: React.FC = () => (
-  <Routes>
-    <Route path='/' element={<ConstructorPage />} />
-    <Route path='/feed' element={<Feed />} />
-    <Route
-      path='/feed/:number'
-      element={
-        <div className={`${styles.wrap} pt-10`}>
-          <h3 className='text text_type_main-large'>Детали заказа</h3>
-          <OrderInfo />
-        </div>
-      }
-    />
-    <Route
-      path='/login'
-      element={
-        <ProtectedRoute onlyUnAuth>
-          <Login />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/register'
-      element={
-        <ProtectedRoute onlyUnAuth>
-          <Register />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/forgot-password'
-      element={
-        <ProtectedRoute onlyUnAuth>
-          <ForgotPassword />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/reset-password'
-      element={
-        <ProtectedRoute onlyUnAuth>
-          <ResetPassword />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/profile'
-      element={
-        <ProtectedRoute>
-          <Profile />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/profile/orders'
-      element={
-        <ProtectedRoute>
-          <ProfileOrders />
-        </ProtectedRoute>
-      }
-    />
-    <Route
-      path='/profile/orders/:number'
-      element={
-        <ProtectedRoute>
-          <div className={`${styles.wrap} pt-10`}>
-            <h3 className='text text_type_main-large'>Детали заказа</h3>
-            <OrderInfo />
-          </div>
-        </ProtectedRoute>
-      }
-    />
-    <Route path='/ingredients/:id' element={<IngredientDetails />} />
-    <Route path='*' element={<NotFound404 />} />
-  </Routes>
-);
-
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const background = location.state?.background ?? location;
+  const background = location.state?.background;
   const closeModal = () => navigate(-1);
+  const orderNumber = useOrderNumber();
 
   useEffect(() => {
     dispatch(getIngredients());
@@ -160,21 +48,120 @@ const App: React.FC = () => {
   return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes location={background}>
+      <Routes location={background || location}>
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/profile/orders' element={<ProfileOrders />} />
+        <Route
+          path='/feed/:number'
+          element={
+            <div className={`${stylesOrder.wrap} pt-10`}>
+              <h3 className='text text_type_main-large'>
+                {`#${orderNumber?.padStart(6, '0')}`}
+              </h3>
+              <OrderInfo />
+            </div>
+          }
+        />
+        <Route
+          path='/login'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/register'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/forgot-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/reset-password'
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile'
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile/orders'
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/profile/orders/:number'
+          element={
+            <ProtectedRoute>
+              <div className={`${stylesOrder.wrapper} pt-10`}>
+                <h3 className='text text_type_main-large'>
+                  {`#${orderNumber?.padStart(6, '0')}`}
+                </h3>
+                <OrderInfo />
+              </div>
+            </ProtectedRoute>
+          }
+        />
         <Route path='/ingredients/:id' element={<IngredientDetails />} />
-        <Route path='/feed/:number' element={<OrderInfo />} />
-        <Route path='/profile/orders/:number' element={<OrderInfo />} />
         <Route path='*' element={<NotFound404 />} />
       </Routes>
-      {location.state?.background && <ModalRoutes onClose={closeModal} />}
+      {background && (
+        <Routes>
+          <Route
+            path='/ingredients/:id'
+            element={
+              <Modal title='Детали ингредиента' onClose={closeModal}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path='/feed/:number'
+            element={
+              <Modal
+                title={`#${orderNumber?.padStart(6, '0')}`}
+                onClose={closeModal}
+              >
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path='/profile/orders/:number'
+            element={
+              <ProtectedRoute>
+                <Modal
+                  title={`#${orderNumber?.padStart(6, '0')}`}
+                  onClose={closeModal}
+                >
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </div>
   );
 };

@@ -6,12 +6,13 @@ import { useDispatch, useSelector } from '../../services/store';
 import {
   selectOrders,
   getFeed,
-  selectFeedStatus
+  getStatusRequest
 } from '../../slices/feedSlice';
 
 export const Feed: FC = () => {
   const orders = useSelector(selectOrders);
-  const statusRequest = useSelector(selectFeedStatus);
+
+  const statusRequest = useSelector(getStatusRequest);
   const dispatch = useDispatch();
 
   useEffect(() => {

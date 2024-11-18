@@ -32,9 +32,7 @@ export const createOrder = createAsyncThunk(
   }
 );
 
-export const getOrder = createAsyncThunk('order/getId', (idOrder: number) =>
-  getOrderByNumberApi(idOrder)
-);
+export const getOrder = createAsyncThunk('order/getId', getOrderByNumberApi);
 
 export const orderSlice = createSlice({
   name: 'order',

@@ -1,10 +1,5 @@
-import {
-  createSlice,
-  createAsyncThunk,
-  createSelector,
-  PayloadAction
-} from '@reduxjs/toolkit';
-import { RequestStatus, TOrder } from '@utils-types';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { RequestStatus, TOrder, TOrdersData } from '@utils-types';
 import { TFeedsResponse, getFeedsApi } from '../utils/burger-api';
 
 type FeedState = {
@@ -43,33 +38,28 @@ export const feedSlice = createSlice({
       })
       .addCase(
         getFeed.fulfilled,
-        (state, action: PayloadAction<TFeedsResponse>) => {
-          const payload = action.payload;
+        (state, action: PayloadAction<TOrdersData>) => {
           state.requestStatus = RequestStatus.Success;
-          state.orders = payload.orders;
-          state.total = payload.total;
-          state.totalToday = payload.totalToday;
+          state.orders = action.payload.orders;
+          state.total = action.payload.total;
+          state.totalToday = action.payload.totalToday;
         }
       );
+  },
+  selectors: {
+    selectOrders: (sliceState: FeedState) => sliceState.orders,
+    selectFeed: (sliceState: FeedState) => sliceState,
+    getStatusRequest: (sliceState: FeedState) => sliceState.requestStatus,
+    selectTotal: (sliceState: FeedState) => sliceState.total,
+    selectTotalToday: (sliceState: FeedState) => sliceState.totalToday
   }
 });
 
-const selectFeedState = (state: { feed: FeedState }) => state.feed;
-
-export const selectOrders = createSelector(
-  selectFeedState,
-  (state) => state.orders
-);
-export const selectTotal = createSelector(
-  selectFeedState,
-  (state) => state.total
-);
-export const selectTotalToday = createSelector(
-  selectFeedState,
-  (state) => state.totalToday
-);
-export const selectFeedStatus = createSelector(
-  selectFeedState,
-  (state) => state.requestStatus
-);
+export const {
+  selectOrders,
+  selectFeed,
+  getStatusRequest,
+  selectTotal,
+  selectTotalToday
+} = feedSlice.selectors;
 export const feedReducer = feedSlice.reducer;
