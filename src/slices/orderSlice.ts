@@ -13,13 +13,13 @@ import {
 } from '../utils/burger-api';
 import { resetBurgerConstructor } from './burgerConstructorSlice';
 
-type OrderState = {
-  order: TOrder | null;
+export type OrderState = {
+  orderData: TOrder | null;
   requestStatus: RequestStatus;
 };
 
-const initialState: OrderState = {
-  order: null,
+export const initialState: OrderState = {
+  orderData: null,
   requestStatus: RequestStatus.Idle
 };
 
@@ -39,7 +39,7 @@ export const orderSlice = createSlice({
   initialState,
   reducers: {
     resetOrderInfo(state) {
-      state.order = null;
+      state.orderData = null;
     }
   },
   extraReducers: (builder) => {
@@ -54,7 +54,7 @@ export const orderSlice = createSlice({
         createOrder.fulfilled,
         (state, action: PayloadAction<TNewOrderResponse>) => {
           state.requestStatus = RequestStatus.Success;
-          state.order = action.payload.order;
+          state.orderData = action.payload.order;
         }
       )
       .addCase(getOrder.pending, (state) => {
@@ -67,7 +67,7 @@ export const orderSlice = createSlice({
         getOrder.fulfilled,
         (state, action: PayloadAction<TOrderResponse>) => {
           state.requestStatus = RequestStatus.Success;
-          state.order = action.payload.orders[0];
+          state.orderData = action.payload.orders[0];
         }
       );
   }
@@ -81,7 +81,7 @@ export const selectOrderStatus = createSelector(
 );
 export const selectOrderInfo = createSelector(
   selectOrderState,
-  (orderState) => orderState.order
+  (orderState) => orderState.orderData
 );
 export const { resetOrderInfo } = orderSlice.actions;
 export const orderReducer = orderSlice.reducer;

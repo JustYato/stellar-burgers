@@ -3,12 +3,12 @@ import { getOrdersApi } from '../utils/burger-api';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 export interface OrdersState {
-  orders: TOrder[];
+  ordersData: TOrder[];
   requestStatus: RequestStatus;
 }
 
 export const initialState: OrdersState = {
-  orders: [],
+  ordersData: [],
   requestStatus: RequestStatus.Idle
 };
 
@@ -33,7 +33,7 @@ const handleFulfilled = (
   action: PayloadAction<TOrder[]>
 ) => {
   state.requestStatus = RequestStatus.Success;
-  state.orders = action.payload;
+  state.ordersData = action.payload;
 };
 
 export const ordersSlice = createSlice({
@@ -49,5 +49,5 @@ export const ordersSlice = createSlice({
 });
 
 export const selectOrders = (state: { orders: OrdersState }) =>
-  state.orders.orders;
+  state.orders.ordersData;
 export const { reducer: ordersReducer } = ordersSlice;

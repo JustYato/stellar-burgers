@@ -7,13 +7,13 @@ import {
 import { getIngredientsApi } from '../utils/burger-api';
 import { TIngredient, RequestStatus } from '../utils/types';
 
-type IngredientState = {
-  ingredients: TIngredient[];
+export type IngredientState = {
+  ingredientsData: TIngredient[];
   requestStatus: RequestStatus;
 };
 
-const initialState: IngredientState = {
-  ingredients: [],
+export const initialState: IngredientState = {
+  ingredientsData: [],
   requestStatus: RequestStatus.Idle
 };
 
@@ -41,7 +41,7 @@ export const ingredientsSlice = createSlice({
         getIngredients.fulfilled,
         (state, action: PayloadAction<TIngredient[]>) => {
           state.requestStatus = RequestStatus.Success;
-          state.ingredients = action.payload;
+          state.ingredientsData = action.payload;
         }
       );
   }
@@ -52,7 +52,7 @@ const selectIngredientState = (state: { ingredients: IngredientState }) =>
 
 export const selectIngredients = createSelector(
   selectIngredientState,
-  (state) => state.ingredients
+  (state) => state.ingredientsData
 );
 export const selectIngredientsStatus = createSelector(
   selectIngredientState,

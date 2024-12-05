@@ -13,13 +13,13 @@ import {
 
 export interface TUserState {
   isAuthVerified: boolean;
-  user: TUser | null;
+  userData: TUser | null;
   requestStatus: RequestStatus;
 }
 
 export const initialState: TUserState = {
   isAuthVerified: false,
-  user: null,
+  userData: null,
   requestStatus: RequestStatus.Idle
 };
 
@@ -92,7 +92,7 @@ const handleRejected = (state: TUserState) => {
 };
 
 const handleFulfilled = (state: TUserState, user: TUser | null) => {
-  state.user = user;
+  state.userData = user;
   state.requestStatus = RequestStatus.Success;
   state.isAuthVerified = true;
 };
@@ -126,15 +126,15 @@ export const userSlice = createSlice({
       .addCase(logoutUser.pending, handlePending)
       .addCase(logoutUser.rejected, handleRejected)
       .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
+        state.userData = null;
         state.requestStatus = RequestStatus.Success;
         state.isAuthVerified = true;
       });
   },
   selectors: {
     isAuthVerifiedSelector: (state: TUserState) => state.isAuthVerified,
-    selectUser: (state: TUserState) => state.user,
-    selectUserName: (state: TUserState) => state.user?.name
+    selectUser: (state: TUserState) => state.userData,
+    selectUserName: (state: TUserState) => state.userData?.name
   }
 });
 
