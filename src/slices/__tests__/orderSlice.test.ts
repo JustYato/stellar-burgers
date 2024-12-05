@@ -5,7 +5,6 @@ import {
   createOrder,
   getOrder,
   resetOrderInfo,
-  OrderState,
   initialState
 } from '../orderSlice';
 
